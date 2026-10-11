@@ -102,10 +102,12 @@ document.querySelectorAll(".choice").forEach(b=>b.onclick=async()=>{if(!activeEd
 $("cancelPopup").onclick=()=>$("backdrop").classList.remove("open");$("backdrop").onclick=e=>{if(e.target===$("backdrop"))$("backdrop").classList.remove("open")};
 $("prevMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()-14);render()};$("nextMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()+14);render()};$("periodPicker").onchange=()=>{if(!$("periodPicker").value)return;periodStart=mondayOf(parseDate($("periodPicker").value));render()};
 $("saveFile").onclick=()=>{const end=new Date(periodStart);end.setUTCDate(end.getUTCDate()+13);const rows=[["date","am","pm"]];for(let i=0;i<14;i++){const dt=new Date(periodStart);dt.setUTCDate(dt.getUTCDate()+i);const s=state(dt);rows.push([isoDate(dt),s.am,s.pm])}const csv=rows.map(r=>r.join(",")).join("\n"),blob=new Blob([csv],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`custody-schedule-${isoDate(periodStart)}-to-${isoDate(end)}.csv`;a.click();URL.revokeObjectURL(a.href)};
-$("backupDb").onclick=()=>location.href="/api/backup";$("loadFile").onclick=()=>$("fileInput").click();$("fileInput").onchange=async()=>{const f=$("fileInput").files[0];if(!f)return;const fd=new FormData();fd.append("file",f);const r=await fetch("/api/import",{method:"POST",body:fd}),j=await r.json();status.textContent=r.ok?`Imported ${j.imported} values.`:(j.error||"Import failed");await $("menuButton").onclick=e=>{e.stopPropagation();const p=$("menuPanel"),open=p.classList.toggle("open");$("menuButton").setAttribute("aria-expanded",open)};
+$("backupDb").onclick=()=>location.href="/api/backup";
+$("loadFile").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=async()=>{const f=$("fileInput").files[0];if(!f)return;const fd=new FormData();fd.append("file",f);const r=await fetch("/api/import",{method:"POST",body:fd}),j=await r.json();status.textContent=r.ok?`Imported ${j.imported} values.`:(j.error||"Import failed");await loadOverrides();$("fileInput").value=""};
+$("menuButton").onclick=e=>{e.stopPropagation();const p=$("menuPanel"),open=p.classList.toggle("open");$("menuButton").setAttribute("aria-expanded",open)};
 $("menuPanel").onclick=e=>e.stopPropagation();
 document.addEventListener("click",()=>{$("menuPanel").classList.remove("open");$("menuButton").setAttribute("aria-expanded","false")});
-loadOverrides();$("fileInput").value=""};
 loadOverrides();
 </script>
 </body></html>
