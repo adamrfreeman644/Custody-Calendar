@@ -29,12 +29,15 @@
   #grid{flex:0 0 auto;min-height:0;height:auto;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(2,132px)}
   .day{min-height:0;height:auto;padding:2px;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
   .daynum{font-size:.5rem;line-height:1.05;min-height:18px;text-align:left;display:flex;align-items:center;justify-content:flex-start;font-weight:850}
-  .slots{flex:1 1 auto;min-height:0;margin:1px 0 0;display:grid;grid-template-rows:1fr auto 1fr;gap:2px}
+  .slots{flex:1 1 auto;min-height:0;margin:1px 0 0;display:grid;grid-template-rows:1fr 14px 1fr;gap:2px}
   .slot{min-width:0;min-height:0;width:100%;height:100%;padding:1px;border-radius:4px;font-size:0;display:flex;align-items:center;justify-content:center;text-align:center;border-left-width:3px!important}
   .slot::before{font-size:.48rem;line-height:1;font-weight:900}
   .slot[data-period="am"]::before{content:"AM"}
   .slot[data-period="pm"]::before{content:"PM"}
   .school{position:static;width:auto;height:14px;padding:1px 0;border:0;border-radius:3px;font-size:.42rem;line-height:12px;font-weight:850;text-align:center;background:#fff2a0;color:#5b4a00}
+  .slots:not(:has(.school))::before{content:"";grid-row:2;height:14px}
+  .slots:not(:has(.school)) .slot[data-period="am"]{grid-row:1}
+  .slots:not(:has(.school)) .slot[data-period="pm"]{grid-row:3}
   .day{position:relative}
   .note{display:none}
   .backdrop{padding:8px}.popup{padding:11px;border-radius:14px}.choice{min-height:42px}.cancel{min-height:40px}
