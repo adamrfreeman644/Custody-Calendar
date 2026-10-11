@@ -49,6 +49,20 @@
   .note{display:none}
   .backdrop{padding:8px}.popup{padding:11px;border-radius:14px}.choice{min-height:42px}.cancel{min-height:40px}
 }
+
+.fortnight{margin-top:8px}.period-label{font-size:.72rem;font-weight:850;color:var(--muted);margin:0 2px 3px}
+@media (orientation:portrait) and (max-width:720px){
+  .fortnight{margin-top:3px;flex:0 0 auto}
+  .period-label{font-size:.5rem;margin:0 1px 1px}
+  .fortnight .summary{margin:1px 0 2px}
+  .fortnight .calendar-shell{flex:none}
+  .fortnight #grid,.fortnight #grid2{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(2,82px);height:auto}
+  .fortnight .daynum{min-height:14px;font-size:.43rem}
+  .fortnight .school{height:11px;line-height:9px;font-size:.36rem}
+  .fortnight .slots{grid-template-rows:1fr 11px 1fr}
+  .fortnight .slots:not(:has(.school))::before{height:11px}
+  .fortnight .slot::before{font-size:.43rem}
+}
 </style>
 </head>
 <body>
@@ -66,11 +80,21 @@
     </div>
     <input id="fileInput" type="file" accept=".csv,text/csv" hidden>
   </div>
-  <div class="summary"><div class="summary-head"><span class="mum-text">Mum <span id="mumPct"></span></span><span class="dad-text">Dad <span id="dadPct"></span></span></div><div class="progress"><div id="mumBar" class="mumbar"></div><div id="dadBar" class="dadbar"></div></div></div>
-  <div class="legend"><span class="pill mum">Mum</span><span class="pill dad">Dad</span><span class="pill school">School</span><span class="pill neg">Dashed = negotiable</span></div>
-  <div class="calendar-shell"><div class="calendar">
+  <div class="fortnight" id="fortnight1">
+    <div class="period-label" id="periodLabel1"></div>
+    <div class="summary"><div class="summary-head"><span class="mum-text">Mum <span id="mumPct"></span></span><span class="dad-text">Dad <span id="dadPct"></span></span></div><div class="progress"><div id="mumBar" class="mumbar"></div><div id="dadBar" class="dadbar"></div></div></div>
+    <div class="calendar-shell"><div class="calendar weekday-row">
     <div class="weekday"><span class="long">Monday</span><span class="short">M</span></div><div class="weekday"><span class="long">Tuesday</span><span class="short">T</span></div><div class="weekday"><span class="long">Wednesday</span><span class="short">W</span></div><div class="weekday"><span class="long">Thursday</span><span class="short">T</span></div><div class="weekday"><span class="long">Friday</span><span class="short">F</span></div><div class="weekday"><span class="long">Saturday</span><span class="short">S</span></div><div class="weekday"><span class="long">Sunday</span><span class="short">S</span></div>
   </div><div id="grid" class="calendar"></div></div>
+  </div>
+  <div class="fortnight" id="fortnight2">
+    <div class="period-label" id="periodLabel2"></div>
+    <div class="summary"><div class="summary-head"><span class="mum-text">Mum <span id="mumPct2"></span></span><span class="dad-text">Dad <span id="dadPct2"></span></span></div><div class="progress"><div id="mumBar2" class="mumbar"></div><div id="dadBar2" class="dadbar"></div></div></div>
+    <div class="calendar-shell"><div class="calendar weekday-row">
+    <div class="weekday"><span class="long">Monday</span><span class="short">M</span></div><div class="weekday"><span class="long">Tuesday</span><span class="short">T</span></div><div class="weekday"><span class="long">Wednesday</span><span class="short">W</span></div><div class="weekday"><span class="long">Thursday</span><span class="short">T</span></div><div class="weekday"><span class="long">Friday</span><span class="short">F</span></div><div class="weekday"><span class="long">Saturday</span><span class="short">S</span></div><div class="weekday"><span class="long">Sunday</span><span class="short">S</span></div>
+  </div><div id="grid2" class="calendar"></div></div>
+  </div>
+  <div class="legend"><span class="pill mum">Mum</span><span class="pill dad">Dad</span><span class="pill school">School</span><span class="pill neg">Dashed = negotiable</span></div>
   <div id="status" class="status"></div>
 </div>
 <div id="backdrop" class="backdrop"><div class="popup"><h2 id="popupTitle"></h2><div id="popupSub" class="sub"></div><div class="choices"><button class="choice mum" data-value="mum">Mum</button><button class="choice mumneg" data-value="mum-neg">Mum — negotiable</button><button class="choice dadneg" data-value="dad-neg">Dad — negotiable</button><button class="choice dad" data-value="dad">Dad</button></div><button id="cancelPopup" class="cancel">Cancel</button></div></div>
@@ -88,20 +112,28 @@ function defaultState(y,m,d){const dt=new Date(Date.UTC(y,m,d)),dow=dt.getUTCDay
 function state(dt){const y=dt.getUTCFullYear(),m=dt.getUTCMonth(),d=dt.getUTCDate(),date=isoDate(dt),cutoff="2026-03-01",b=date<cutoff?{am:"",pm:"",note:"",school:false}:defaultState(y,m,d);if(overrides[key(date,"am")])b.am=overrides[key(date,"am")];if(overrides[key(date,"pm")])b.pm=overrides[key(date,"pm")];return b}
 const parent=v=>!v?"":v.startsWith("mum")?"mum":"dad",label=v=>!v?"—":v==="mum"?"Mum":v==="mum-neg"?"Mum · Negotiable":v==="dad-neg"?"Dad · Negotiable":"Dad",cls=v=>!v?"blank":v==="mum"?"mum":v==="dad"?"dad":v==="mum-neg"?"mumneg":"dadneg";
 async function loadOverrides(){const r=await fetch("/api/overrides"),rows=await r.json();overrides={};for(const x of rows)overrides[key(x.date,x.period)]=x.value;render()}
+function renderFortnight(start,gridEl,pctM,pctD,barM,barD,labelEl){
+ const end=new Date(start);end.setUTCDate(end.getUTCDate()+13);
+ const shortFmt={day:"numeric",month:"short",year:"numeric",timeZone:"UTC"};
+ $(labelEl).textContent=start.toLocaleDateString("en-GB",shortFmt)+" – "+end.toLocaleDateString("en-GB",shortFmt);
+ gridEl.innerHTML="";let mum=0,dad=0;
+ for(let i=0;i<14;i++){const dt=new Date(start);dt.setUTCDate(dt.getUTCDate()+i);const s=state(dt);mum+=(parent(s.am)==="mum")+(parent(s.pm)==="mum");dad+=(parent(s.am)==="dad")+(parent(s.pm)==="dad");const d=document.createElement("div");d.className="day";d.innerHTML=`<div class="daynum">${dt.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"})}</div><div class="slots"><button class="slot ${cls(s.am)}" data-period="am" data-date="${isoDate(dt)}">AM · ${label(s.am)}</button>${s.school?'<div class="school">School</div>':""}<button class="slot ${cls(s.pm)}" data-period="pm" data-date="${isoDate(dt)}">PM · ${label(s.pm)}</button></div>${s.note?'<div class="note">'+s.note+'</div>':""}`;gridEl.appendChild(d)}
+ const total=mum+dad,mp=total?mum/total*100:0,dp=total?dad/total*100:0;$(pctM).textContent=total?mp.toFixed(1)+"%":"—";$(pctD).textContent=total?dp.toFixed(1)+"%":"—";$(barM).style.width=mp+"%";$(barD).style.width=dp+"%";
+ gridEl.querySelectorAll(".slot").forEach(b=>b.onclick=()=>{activeEdit={date:b.dataset.date,period:b.dataset.period};const dt=parseDate(b.dataset.date);$("popupTitle").textContent=b.dataset.period.toUpperCase()+" custody";$("popupSub").textContent=dt.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"});$("backdrop").classList.add("open")})
+}
 function render(){
- const end=new Date(periodStart);end.setUTCDate(end.getUTCDate()+13);
+ const overallEnd=new Date(periodStart);overallEnd.setUTCDate(overallEnd.getUTCDate()+27);
  const fmt={day:"numeric",month:"short",year:"numeric",timeZone:"UTC"};
- $("monthTitle").textContent=periodStart.toLocaleDateString("en-GB",fmt)+" – "+end.toLocaleDateString("en-GB",fmt);
- $("periodPicker").value=isoDate(periodStart);grid.innerHTML="";
- let mum=0,dad=0;
- for(let i=0;i<14;i++){const dt=new Date(periodStart);dt.setUTCDate(dt.getUTCDate()+i);const s=state(dt);mum+=(parent(s.am)==="mum")+(parent(s.pm)==="mum");dad+=(parent(s.am)==="dad")+(parent(s.pm)==="dad");const c=document.createElement("div");c.className="day";c.innerHTML=`<div class="daynum">${dt.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"})}</div><div class="slots"><button class="slot ${cls(s.am)}" data-period="am" data-date="${isoDate(dt)}">AM · ${label(s.am)}</button>${s.school?'<div class="school">School</div>':""}<button class="slot ${cls(s.pm)}" data-period="pm" data-date="${isoDate(dt)}">PM · ${label(s.pm)}</button></div>${s.note?'<div class="note">'+s.note+'</div>':""}`;grid.appendChild(c)}
- const total=mum+dad,mp=total?mum/total*100:0,dp=total?dad/total*100:0;$("mumPct").textContent=total?mp.toFixed(1)+"%":"—";$("dadPct").textContent=total?dp.toFixed(1)+"%":"—";$("mumBar").style.width=mp+"%";$("dadBar").style.width=dp+"%";
- grid.querySelectorAll(".slot").forEach(b=>b.onclick=()=>{activeEdit={date:b.dataset.date,period:b.dataset.period};const dt=parseDate(b.dataset.date);$("popupTitle").textContent=b.dataset.period.toUpperCase()+" custody";$("popupSub").textContent=dt.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"});$("backdrop").classList.add("open")})
+ $("monthTitle").textContent=periodStart.toLocaleDateString("en-GB",fmt)+" – "+overallEnd.toLocaleDateString("en-GB",fmt);
+ $("periodPicker").value=isoDate(periodStart);
+ renderFortnight(periodStart,$("grid"),"mumPct","dadPct","mumBar","dadBar","periodLabel1");
+ const second=new Date(periodStart);second.setUTCDate(second.getUTCDate()+14);
+ renderFortnight(second,$("grid2"),"mumPct2","dadPct2","mumBar2","dadBar2","periodLabel2");
 }
 document.querySelectorAll(".choice").forEach(b=>b.onclick=async()=>{if(!activeEdit)return;const r=await fetch("/api/override",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({...activeEdit,value:b.dataset.value})});if(r.ok){$("backdrop").classList.remove("open");status.textContent="Change saved to Byte-Me.";await loadOverrides()}else status.textContent="Save failed."});
 $("cancelPopup").onclick=()=>$("backdrop").classList.remove("open");$("backdrop").onclick=e=>{if(e.target===$("backdrop"))$("backdrop").classList.remove("open")};
-$("prevMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()-14);render()};$("nextMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()+14);render()};$("periodPicker").onchange=()=>{if(!$("periodPicker").value)return;periodStart=mondayOf(parseDate($("periodPicker").value));render()};
-$("saveFile").onclick=()=>{const end=new Date(periodStart);end.setUTCDate(end.getUTCDate()+13);const rows=[["date","am","pm"]];for(let i=0;i<14;i++){const dt=new Date(periodStart);dt.setUTCDate(dt.getUTCDate()+i);const s=state(dt);rows.push([isoDate(dt),s.am,s.pm])}const csv=rows.map(r=>r.join(",")).join("\n"),blob=new Blob([csv],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`custody-schedule-${isoDate(periodStart)}-to-${isoDate(end)}.csv`;a.click();URL.revokeObjectURL(a.href)};
+$("prevMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()-28);render()};$("nextMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()+28);render()};$("periodPicker").onchange=()=>{if(!$("periodPicker").value)return;periodStart=mondayOf(parseDate($("periodPicker").value));render()};
+$("saveFile").onclick=()=>{const end=new Date(periodStart);end.setUTCDate(end.getUTCDate()+27);const rows=[["date","am","pm"]];for(let i=0;i<28;i++){const dt=new Date(periodStart);dt.setUTCDate(dt.getUTCDate()+i);const s=state(dt);rows.push([isoDate(dt),s.am,s.pm])}const csv=rows.map(r=>r.join(",")).join("\n"),blob=new Blob([csv],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`custody-schedule-${isoDate(periodStart)}-to-${isoDate(end)}.csv`;a.click();URL.revokeObjectURL(a.href)};
 $("backupDb").onclick=()=>location.href="/api/backup";
 $("loadFile").onclick=()=>$("fileInput").click();
 $("fileInput").onchange=async()=>{const f=$("fileInput").files[0];if(!f)return;const fd=new FormData();fd.append("file",f);const r=await fetch("/api/import",{method:"POST",body:fd}),j=await r.json();status.textContent=r.ok?`Imported ${j.imported} values.`:(j.error||"Import failed");await loadOverrides();$("fileInput").value=""};
