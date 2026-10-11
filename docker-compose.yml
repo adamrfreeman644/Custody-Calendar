@@ -1,0 +1,11 @@
+services:
+  custody-calendar:
+    build: .
+    container_name: custody-calendar
+    restart: unless-stopped
+    ports:
+      - "8098:8080"
+    environment:
+      - DATA_DIR=/data
+    volumes:
+      - /mnt/user/appdata/custody-calendar:/data
