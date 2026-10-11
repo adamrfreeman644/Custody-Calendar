@@ -24,7 +24,7 @@ docker compose up -d --build
 Open:
 
 ```
-http://192.168.1.187:8098
+http://192.168.1.187:2566
 ```
 
 Persistent data is stored at:
@@ -52,9 +52,9 @@ Use **Backup database** in the app, or copy:
 
 ## Port
 
-Default host port is **8098**. Change the left side of this line in `docker-compose.yml` if needed:
+Default host port is **2566**. Change the left side of this line in `docker-compose.yml` if needed:
 
 ```yaml
 ports:
-  - "8098:8080"
+  - "2566:8080"
 ```
