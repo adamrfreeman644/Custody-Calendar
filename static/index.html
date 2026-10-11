@@ -10,6 +10,12 @@
 @media(max-width:720px){.app{padding:7px}.title h1{font-size:1.2rem}.topbar{align-items:center}.month-control{width:100%;display:grid;grid-template-columns:44px 1fr 44px}.month-control input{width:100%;min-width:0}.filebar{display:grid;grid-template-columns:1fr 1fr}.weekday{font-size:.65rem;padding:7px 1px}.day{min-height:99px;padding:3px}.daynum{font-size:.72rem}.slot,.school{font-size:.53rem;padding:4px 3px;border-radius:5px}.note{font-size:.48rem}.summary-head{font-size:.82rem}}
 @media(max-width:430px){.weekday .long{display:none}.weekday .short{display:inline}.day{min-height:94px}}@media(min-width:431px){.weekday .short{display:none}}
 
+
+.utility-menu{position:absolute;top:14px;right:14px;z-index:20}
+.menu-button{width:44px;height:44px;border:1px solid var(--border);border-radius:12px;background:var(--card);font-size:1.15rem;font-weight:900}
+.menu-panel{display:none;position:absolute;right:0;top:49px;width:190px;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.menu-panel.open{display:grid;gap:5px}
+.menu-panel button{min-height:40px;border:1px solid var(--border);border-radius:9px;background:var(--card);padding:7px 9px;text-align:left;font-weight:750}
 /* Portrait phones: true two-week calendar, all 14 days visible with no scrolling. */
 @media (orientation:portrait) and (max-width:720px){
   html,body{height:100%;overflow:hidden}
@@ -19,7 +25,8 @@
   .month-control{width:auto;display:grid;grid-template-columns:30px 30px;gap:3px}
   .month-control button{width:30px;height:30px;border-radius:7px;padding:0}
   .month-control input{display:none}
-  .filebar,.legend,.status{display:none}
+  .legend,.status{display:none}
+  .utility-menu{top:5px;right:5px}.menu-button{width:30px;height:30px;border-radius:7px;font-size:.8rem}.menu-panel{top:34px;width:170px}
   .summary{flex:0 0 auto;margin:4px 0}
   .summary-head{font-size:.61rem}.progress{height:8px;margin-top:1px}.progress>div{font-size:0}
   .calendar-shell{flex:0 0 auto;min-height:0;border-radius:9px;display:flex;flex-direction:column;overflow:hidden}
@@ -50,10 +57,13 @@
     <div class="title"><div style="font-size:.78rem;color:var(--muted)">Custody calendar</div><h1 id="monthTitle"></h1></div>
     <div class="month-control"><button id="prevMonth">‹</button><input id="periodPicker" type="date"><button id="nextMonth">›</button></div>
   </div>
-  <div class="filebar">
-    <button id="saveFile" class="primary">Save schedule CSV</button>
-    <button id="loadFile">Load CSV</button>
-    <button id="backupDb">Backup database</button>
+  <div class="utility-menu">
+    <button id="menuButton" class="menu-button" aria-label="More options" aria-expanded="false">☰</button>
+    <div id="menuPanel" class="menu-panel">
+      <button id="saveFile">Save schedule CSV</button>
+      <button id="loadFile">Load CSV</button>
+      <button id="backupDb">Backup database</button>
+    </div>
     <input id="fileInput" type="file" accept=".csv,text/csv" hidden>
   </div>
   <div class="summary"><div class="summary-head"><span class="mum-text">Mum <span id="mumPct"></span></span><span class="dad-text">Dad <span id="dadPct"></span></span></div><div class="progress"><div id="mumBar" class="mumbar"></div><div id="dadBar" class="dadbar"></div></div></div>
@@ -92,7 +102,10 @@ document.querySelectorAll(".choice").forEach(b=>b.onclick=async()=>{if(!activeEd
 $("cancelPopup").onclick=()=>$("backdrop").classList.remove("open");$("backdrop").onclick=e=>{if(e.target===$("backdrop"))$("backdrop").classList.remove("open")};
 $("prevMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()-14);render()};$("nextMonth").onclick=()=>{periodStart.setUTCDate(periodStart.getUTCDate()+14);render()};$("periodPicker").onchange=()=>{if(!$("periodPicker").value)return;periodStart=mondayOf(parseDate($("periodPicker").value));render()};
 $("saveFile").onclick=()=>{const end=new Date(periodStart);end.setUTCDate(end.getUTCDate()+13);const rows=[["date","am","pm"]];for(let i=0;i<14;i++){const dt=new Date(periodStart);dt.setUTCDate(dt.getUTCDate()+i);const s=state(dt);rows.push([isoDate(dt),s.am,s.pm])}const csv=rows.map(r=>r.join(",")).join("\n"),blob=new Blob([csv],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`custody-schedule-${isoDate(periodStart)}-to-${isoDate(end)}.csv`;a.click();URL.revokeObjectURL(a.href)};
-$("backupDb").onclick=()=>location.href="/api/backup";$("loadFile").onclick=()=>$("fileInput").click();$("fileInput").onchange=async()=>{const f=$("fileInput").files[0];if(!f)return;const fd=new FormData();fd.append("file",f);const r=await fetch("/api/import",{method:"POST",body:fd}),j=await r.json();status.textContent=r.ok?`Imported ${j.imported} values.`:(j.error||"Import failed");await loadOverrides();$("fileInput").value=""};
+$("backupDb").onclick=()=>location.href="/api/backup";$("loadFile").onclick=()=>$("fileInput").click();$("fileInput").onchange=async()=>{const f=$("fileInput").files[0];if(!f)return;const fd=new FormData();fd.append("file",f);const r=await fetch("/api/import",{method:"POST",body:fd}),j=await r.json();status.textContent=r.ok?`Imported ${j.imported} values.`:(j.error||"Import failed");await $("menuButton").onclick=e=>{e.stopPropagation();const p=$("menuPanel"),open=p.classList.toggle("open");$("menuButton").setAttribute("aria-expanded",open)};
+$("menuPanel").onclick=e=>e.stopPropagation();
+document.addEventListener("click",()=>{$("menuPanel").classList.remove("open");$("menuButton").setAttribute("aria-expanded","false")});
+loadOverrides();$("fileInput").value=""};
 loadOverrides();
 </script>
 </body></html>
