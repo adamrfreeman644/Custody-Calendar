@@ -10,33 +10,33 @@
 @media(max-width:720px){.app{padding:7px}.title h1{font-size:1.2rem}.topbar{align-items:center}.month-control{width:100%;display:grid;grid-template-columns:44px 1fr 44px}.month-control input{width:100%;min-width:0}.filebar{display:grid;grid-template-columns:1fr 1fr}.weekday{font-size:.65rem;padding:7px 1px}.day{min-height:99px;padding:3px}.daynum{font-size:.72rem}.slot,.school{font-size:.53rem;padding:4px 3px;border-radius:5px}.note{font-size:.48rem}.summary-head{font-size:.82rem}}
 @media(max-width:430px){.weekday .long{display:none}.weekday .short{display:inline}.day{min-height:94px}}@media(min-width:431px){.weekday .short{display:none}}
 
-/* Portrait phones: keep the whole fortnight visible without page scrolling.
-   Rows are weekdays; columns are Week 1 and Week 2. */
+/* Portrait phones: true two-week calendar, all 14 days visible with no scrolling. */
 @media (orientation:portrait) and (max-width:720px){
   html,body{height:100%;overflow:hidden}
   .app{height:100dvh;display:flex;flex-direction:column;padding:5px;overflow:hidden}
-  .topbar{flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center}
-  .title>div{display:none}.title h1{font-size:.82rem;line-height:1.05;margin:0}
-  .month-control{width:auto;display:grid;grid-template-columns:34px 1fr 34px;gap:4px}
+  .topbar{flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:4px;align-items:center}
+  .title>div{display:none}.title h1{font-size:.72rem;line-height:1;margin:0;font-weight:850;white-space:nowrap}
+  .month-control{width:auto;display:grid;grid-template-columns:30px 30px;gap:3px}
   .month-control button{width:30px;height:30px;border-radius:7px;padding:0}
-  .month-control input{height:30px;min-width:0;width:112px;padding:0 4px;font-size:.62rem}
-  .filebar{display:none}
-  .summary{flex:0 0 auto;margin:4px 0 3px}
-  .summary-head{font-size:.6rem}.progress{height:9px;margin-top:1px}.progress>div{font-size:0}
-  .legend{flex:0 0 auto;margin:2px 0 4px;gap:3px}
-  .pill{font-size:.48rem;padding:1px 4px}
+  .month-control input{display:none}
+  .filebar,.legend,.status{display:none}
+  .summary{flex:0 0 auto;margin:4px 0}
+  .summary-head{font-size:.61rem}.progress{height:8px;margin-top:1px}.progress>div{font-size:0}
   .calendar-shell{flex:1 1 auto;min-height:0;border-radius:9px;display:flex;flex-direction:column;overflow:hidden}
-  .calendar-shell>.calendar:first-child{display:none}
-  #grid{height:100%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(7,minmax(0,1fr));grid-auto-flow:column}
-  .day{min-height:0;height:auto;padding:2px 3px;display:grid;grid-template-columns:42px 1fr;grid-template-rows:1fr;gap:3px;align-items:stretch;overflow:hidden;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
-  .daynum{font-size:.58rem;line-height:1.05;display:flex;align-items:center;font-weight:850}
-  .slots{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:0}
-  .slot{min-width:0;height:100%;padding:1px 2px;font-size:0;border-radius:4px;display:flex;align-items:center;justify-content:center;text-align:center;border-left-width:3px!important}
-  .slot::before{font-size:.54rem;line-height:1;font-weight:900}
+  .calendar-shell>.calendar:first-child{flex:0 0 20px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+  .weekday{padding:3px 0;font-size:.5rem;line-height:1;border-bottom:1px solid var(--border)}
+  .weekday .long{display:none}.weekday .short{display:inline}
+  #grid{flex:1 1 auto;min-height:0;height:auto;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+  .day{min-height:0;height:auto;padding:2px;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .daynum{font-size:.5rem;line-height:1.05;min-height:18px;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:850}
+  .slots{flex:1 1 auto;min-height:0;margin:1px 0 0;display:grid;grid-template-rows:1fr 1fr;gap:2px}
+  .slot{min-width:0;min-height:0;width:100%;height:100%;padding:1px;border-radius:4px;font-size:0;display:flex;align-items:center;justify-content:center;text-align:center;border-left-width:3px!important}
+  .slot::before{font-size:.5rem;line-height:1;font-weight:900}
   .slot[data-period="am"]::before{content:"AM"}
   .slot[data-period="pm"]::before{content:"PM"}
-  .school,.note{display:none}
-  .status{display:none}
+  .school{position:absolute;width:5px;height:5px;padding:0;border:0;border-radius:50%;font-size:0;background:var(--school)}
+  .day{position:relative}.day .school{right:3px;top:3px}
+  .note{display:none}
   .backdrop{padding:8px}.popup{padding:11px;border-radius:14px}.choice{min-height:42px}.cancel{min-height:40px}
 }
 </style>
